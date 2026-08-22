@@ -1,0 +1,66 @@
+# versão da sintaxe do Docker Compose que estamos usando
+version: '3.8'
+
+# lista de containers ("serviços") que vão rodar juntos
+services:
+
+  # ------------------------------------------------------------
+  # NGINX - servidor web, recebe requisição HTTP e repassa pro PHP
+  # ------------------------------------------------------------
+  nginx:
+    image: nginx:alpine          # imagem oficial, versão leve baseada em Alpine Linux
+    ports:
+      - "${APP_PORT}:80"         # mapeia a porta do .env (8000) pra porta 80 do container
+                                  # acesso final: http://localhost:8000
+    volumes:
+      - ./src:/var/www/html      # compartilha a pasta local ./src com o container
+                                  # (edições no código local refletem automaticamente)
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+                                  # injeta o arquivo de configuração customizado do nginx
+    depends_on:
+      - php                      # sobe o container php antes/junto deste
+
+  # ------------------------------------------------------------
+  # PHP-FPM - processa o código Laravel (não acessível direto pelo navegador)
+  # ------------------------------------------------------------
+  php:
+    build:
+      context: ./docker/php      # ao invés de imagem pronta, constrói a partir do Dockerfile
+    volumes:
+      - ./src:/var/www/html      # mesmo código compartilhado com o nginx
+    depends_on:
+      - mysql                    # espera o mysql iniciar (não garante que já esteja pronto pra conexão)
+
+  # ------------------------------------------------------------
+  # MYSQL - banco de dados
+  # ------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    environment:                          # variáveis lidas automaticamente do arquivo .env
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"               # expõe a porta padrão do MySQL pro seu host
+                                   # (permite conectar via TablePlus/DBeaver de fora do container)
+    volumes:
+      - mysql_data:/var/lib/mysql # volume nomeado - persiste os dados do banco
+                                   # mesmo que o container seja destruído, o dado permanece
+
+  # ------------------------------------------------------------
+  # NODE - só usado para compilar assets (Vue/CSS/JS) via Vite
+  # ------------------------------------------------------------
+  node:
+    image: node:20-alpine
+    working_dir: /var/www/html   # pasta de trabalho dentro do container
+    volumes:
+      - ./src:/var/www/html
+    command: sh -c "npm install && npm run dev"
+                                  # ao subir, instala dependências e inicia o servidor de dev do Vite
+    ports:
+      - "${VITE_PORT}:5173"      # porta configurável via .env
+
+# declaração do volume nomeado usado pelo mysql
+volumes:
+  mysql_data:
