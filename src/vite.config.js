@@ -17,8 +17,14 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        host: '0.0.0.0',           // permite conexão vinda de fora do container
+        port: 5173,
+        strictPort: true,
         watch: {
             ignored: ['**/storage/framework/views/**'],
+        },
+        hmr: {
+            host: 'localhost',      // endereço que o NAVEGADOR usa pra se conectar de volta
         },
     },
 });
