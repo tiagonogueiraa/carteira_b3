@@ -5,12 +5,20 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+import { useDarkMode } from '@/Composables/Usedarkmode';
+
 import { Link } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
+
+const { isDark, toggleDark } = useDarkMode();
 </script>
 
 <template>
+    <Button variant="ghost" size="icon" @click="toggleDark">
+        <Sun v-if="isDark" class="h-5 w-5" />
+        <Moon v-else class="h-5 w-5" />
+    </Button>
     <div>
         <div class="min-h-screen bg-gray-100">
             <nav
@@ -82,6 +90,11 @@ const showingNavigationDropdown = ref(false);
                                             as="button"
                                         >
                                             Log Out
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            :href="route('design-system')"                                           
+                                        >
+                                            Design System
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>

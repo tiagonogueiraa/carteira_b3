@@ -52,8 +52,9 @@ services:
   # NODE - só usado para compilar assets (Vue/CSS/JS) via Vite
   # ------------------------------------------------------------
   node:
-    image: node:20-alpine
+    image: node:22-alpine
     working_dir: /var/www/html   # pasta de trabalho dentro do container
+    user: "${HOST_UID}:${HOST_GID}" # definir o usuario e do arquivo do pc
     volumes:
       - ./src:/var/www/html
     command: sh -c "npm install && npm run dev"

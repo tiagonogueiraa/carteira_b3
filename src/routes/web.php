@@ -14,6 +14,10 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/DesignSystem', function () {
+    return Inertia::render('DesignSystem/DesignSystem');
+})->middleware(['auth', 'verified'])->name('design-system');
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
