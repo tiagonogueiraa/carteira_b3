@@ -1,21 +1,23 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
+    <!--
+        Mesmo fundo escuro + acento verde da Home (Welcome.vue), pra Login e
+        Registro parecerem parte do mesmo produto, não uma tela solta do
+        Breeze. A classe "dark" na raiz ativa as variantes dark: dos
+        componentes shadcn-vue (Input, Button, Card) usados dentro do slot —
+        sem ela, esses componentes renderizam com o estilo de tema claro.
+    -->
     <div
-        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
+        class="dark flex min-h-screen flex-col items-center justify-center gap-6 bg-zinc-950 px-6 py-12 text-zinc-50"
     >
-        <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
-            </Link>
-        </div>
+        <Link href="/" class="text-lg font-semibold tracking-tight">
+            Minha Carteira
+        </Link>
 
-        <div
-            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
-        >
+        <div class="w-full sm:max-w-md">
             <slot />
         </div>
     </div>
