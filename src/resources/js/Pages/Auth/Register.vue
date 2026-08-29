@@ -31,9 +31,9 @@ const submit = () => {
     <GuestLayout>
         <Head title="Criar conta" />
 
-        <Card class="border-zinc-800 bg-zinc-900">
+        <Card class="">
             <CardHeader>
-                <CardTitle class="text-zinc-50">Criar conta</CardTitle>
+                <CardTitle class="">Criar conta</CardTitle>
                 <CardDescription>
                     Comece a acompanhar sua carteira de ações e FIIs
                 </CardDescription>

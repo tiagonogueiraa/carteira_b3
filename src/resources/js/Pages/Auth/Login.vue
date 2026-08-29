@@ -1,5 +1,5 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
+import Checkbox from '@/components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -40,9 +40,9 @@ const submit = () => {
     <GuestLayout>
         <Head title="Entrar" />
 
-        <Card class="border-zinc-800 bg-zinc-900">
+        <Card>
             <CardHeader>
-                <CardTitle class="text-zinc-50">Entrar</CardTitle>
+                <CardTitle>Entrar</CardTitle>
                 <CardDescription>
                     Acesse sua carteira de ações e FIIs
                 </CardDescription>

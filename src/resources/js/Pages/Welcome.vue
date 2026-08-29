@@ -20,6 +20,10 @@ import {
     Check,
 } from '@lucide/vue';
 
+import { useDarkMode } from '@/Composables/Usedarkmode';
+
+const { isDark, toggleDark } = useDarkMode();
+
 defineProps({
     canLogin: {
         type: Boolean,
@@ -109,15 +113,9 @@ const plans = [
 ];
 </script>
 
-<template>
+<template>       
     <Head title="Minha Carteira" />
-
-    <!--
-        Fundo escuro fixo (não depende do toggle claro/escuro do resto do
-        app, que ainda nem existe) pra reproduzir a estética do design de
-        referência: fundo quase preto + acento verde nos destaques.
-    -->
-    <div class="min-h-screen bg-zinc-950 text-zinc-50">
+    <div class="min-h-screen bg-background text-foreground">
         <div class="mx-auto max-w-6xl px-6">
             <!-- ===================== HEADER ===================== -->
             <!-- Logo + navegação de autenticação (Entrar/Registrar), igual
@@ -127,27 +125,30 @@ const plans = [
                     Minha Carteira
                 </span>
 
-                <nav v-if="canLogin" class="flex items-center gap-3">
-                    <Button v-if="$page.props.auth.user" as-child>
-                        <Link :href="route('dashboard')">Dashboard</Link>
-                    </Button>
-
-                    <template v-else>
-                        <Button variant="ghost" as-child>
-                            <Link :href="route('login')">Entrar</Link>
+                <div class="flex ">
+                    <nav v-if="canLogin" class="flex items-center gap-3">
+                        <Button v-if="$page.props.auth.user" as-child>
+                            <Link :href="route('dashboard')">Dashboard</Link>
                         </Button>
-
-                        <Button
-                            v-if="canRegister"
-                            class="bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
-                            as-child
-                        >
-                            <Link :href="route('register')">
-                                Criar conta
-                            </Link>
-                        </Button>
-                    </template>
-                </nav>
+    
+                        <template v-else>
+                            <Button variant="ghost" as-child>
+                                <Link :href="route('login')">Entrar</Link>
+                            </Button>
+    
+                            <Button
+                                v-if="canRegister"
+                                class="bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
+                                as-child
+                            >
+                                <Link :href="route('register')">
+                                    Criar conta
+                                </Link>
+                            </Button>
+                        </template>
+                    </nav>                   
+                </div>
+             
             </header>
 
             <!-- ===================== HERO ===================== -->
@@ -180,7 +181,13 @@ const plans = [
                         </Link>
                     </Button>
 
-                    <Button v-if="canLogin" size="lg" variant="outline" as-child>
+                    <Button 
+                        v-if="canLogin" 
+                        size="lg" 
+                        variant="outline" 
+                        class=""
+                        as-child                        
+                    >
                         <Link :href="route('login')">Já tenho conta</Link>
                     </Button>
                 </div>
