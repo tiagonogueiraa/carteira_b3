@@ -18,6 +18,8 @@ import {
     ShieldCheck,
     Lock,
     Check,
+    Sun,
+    Moon,
 } from '@lucide/vue';
 
 import { useDarkMode } from '@/Composables/Usedarkmode';
@@ -127,6 +129,11 @@ const plans = [
 
                 <div class="flex ">
                     <nav v-if="canLogin" class="flex items-center gap-3">
+                        <Button variant="ghost" size="icon" @click="toggleDark">
+                            <Sun v-if="isDark" class="h-5 w-5" />
+                            <Moon v-else class="h-5 w-5" />
+                        </Button>
+                        
                         <Button v-if="$page.props.auth.user" as-child>
                             <Link :href="route('dashboard')">Dashboard</Link>
                         </Button>
@@ -226,7 +233,6 @@ const plans = [
                     <Card
                         v-for="feature in features"
                         :key="feature.title"
-                        class="border-zinc-800 bg-zinc-900"
                     >
                         <CardHeader>
                             <div
@@ -263,7 +269,7 @@ const plans = [
                     <Card
                         v-for="plan in plans"
                         :key="plan.name"
-                        class="bg-zinc-900"
+                        class=""
                         :class="
                             plan.highlight
                                 ? 'border-emerald-500/50'
@@ -272,7 +278,7 @@ const plans = [
                     >
                         <CardHeader>
                             <div class="flex items-center gap-2">
-                                <CardTitle class="text-zinc-50">
+                                <CardTitle class="text-foreground">
                                     {{ plan.name }}
                                 </CardTitle>
                                 <Badge
@@ -283,7 +289,7 @@ const plans = [
                                 </Badge>
                             </div>
                             <CardDescription>
-                                <span class="text-2xl font-bold text-zinc-50">
+                                <span class="text-2xl font-bold text-foreground">
                                     {{ plan.price }}
                                 </span>
                                 <span class="ml-1">{{ plan.period }}</span>
@@ -291,7 +297,7 @@ const plans = [
                         </CardHeader>
 
                         <CardContent>
-                            <ul class="space-y-2 text-sm text-zinc-300">
+                            <ul class="space-y-2 text-sm text-muted-foreground">
                                 <li
                                     v-for="item in plan.items"
                                     :key="item"

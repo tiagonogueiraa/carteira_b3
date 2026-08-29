@@ -88,6 +88,11 @@ const { isDark, toggleDark } = useDarkMode();
                                             Profile
                                         </DropdownLink>
                                         <DropdownLink
+                                            :href="route('profile.edit')"
+                                        >
+                                            Ações
+                                        </DropdownLink>
+                                        <DropdownLink
                                             :href="route('logout')"
                                             method="post"
                                             as="button"
