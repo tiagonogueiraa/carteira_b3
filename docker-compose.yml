@@ -26,6 +26,10 @@ services:
   php:
     build:
       context: ./docker/php      # ao invés de imagem pronta, constrói a partir do Dockerfile
+      args:
+        HOST_UID: ${HOST_UID}
+        HOST_GID: ${HOST_GID}
+    user: "${HOST_UID}:${HOST_GID}" # definir o usuario e do arquivo do pc
     volumes:
       - ./src:/var/www/html      # mesmo código compartilhado com o nginx
     depends_on:
