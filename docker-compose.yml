@@ -45,8 +45,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3306:3306"               # expõe a porta padrão do MySQL pro seu host
+#    ports:
+#      - "3306:3306"               # expõe a porta padrão do MySQL pro seu host
                                    # (permite conectar via TablePlus/DBeaver de fora do container)
     volumes:
       - mysql_data:/var/lib/mysql # volume nomeado - persiste os dados do banco
@@ -59,6 +59,8 @@ services:
     image: node:22-alpine
     working_dir: /var/www/html   # pasta de trabalho dentro do container
     user: "${HOST_UID}:${HOST_GID}" # definir o usuario e do arquivo do pc
+    environment:
+      - NPM_CONFIG_CACHE=/var/www/html/.npm-cache
     volumes:
       - ./src:/var/www/html
     command: sh -c "npm install && npm run dev"
