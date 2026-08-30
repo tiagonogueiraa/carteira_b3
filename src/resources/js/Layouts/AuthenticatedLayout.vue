@@ -88,7 +88,7 @@ const { isDark, toggleDark } = useDarkMode();
                                             Profile
                                         </DropdownLink>
                                         <DropdownLink
-                                            :href="route('profile.edit')"
+                                            :href="route('stocks.index')"
                                         >
                                             Ações
                                         </DropdownLink>
