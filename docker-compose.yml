@@ -48,6 +48,8 @@ services:
 #    ports:
 #      - "3306:3306"               # expõe a porta padrão do MySQL pro seu host
                                    # (permite conectar via TablePlus/DBeaver de fora do container)
+    ports:
+      - "127.0.0.1:3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql # volume nomeado - persiste os dados do banco
                                    # mesmo que o container seja destruído, o dado permanece
