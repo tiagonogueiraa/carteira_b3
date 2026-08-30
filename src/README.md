@@ -1,58 +1,125 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Minha Carteira
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicação web para registrar e acompanhar uma carteira de ações e FIIs da B3
+manualmente — sem conectar conta bancária ou corretora. Cadastre suas compras,
+acompanhe o preço médio calculado a partir do histórico de lotes, e visualize a
+evolução do capital investido ao longo do tempo.
 
-## About Laravel
+> **Projeto de estudos.** Construído para aprender Laravel, Vue e Docker na
+> prática — não só a "cola" das ferramentas, mas o porquê por trás de cada
+> decisão (relacionamentos do Eloquent, Policies, dark mode via CSS variables,
+> permissão de arquivo em container Docker, etc). O README documenta os
+> comandos do dia a dia justamente para isso.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funcionalidades
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Autenticação completa** — cadastro, login, recuperação de senha e verificação
+  de e-mail (Laravel Breeze).
+- **Cadastro de ações e FIIs** — cada compra vira um "lote" (quantidade, preço,
+  data); o preço médio e a quantidade total são calculados automaticamente a
+  partir do histórico, não digitados à mão.
+- **Detalhe por ativo** — quantidade total, preço médio e o histórico completo
+  de compras de cada ticker.
+- **Dashboard** — gráfico do capital investido acumulado nos últimos 6 meses e
+  um resumo da carteira.
+- **Tema claro/escuro** — com persistência da escolha do usuário.
+- **Design system próprio** (`/design-system`) — catálogo dos componentes de UI
+  usados no projeto.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tecnologias
 
-## Learning Laravel
+**Backend**
+- Laravel 13.17 (PHP 8.3)
+- MySQL 8
+- [Inertia.js](https://inertiajs.com) — ponte entre Laravel e Vue sem precisar de API REST separada
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**Frontend**
+- Vue 3.4 (Composition API / `<script setup>`)
+- [shadcn-vue](https://www.shadcn-vue.com) + Tailwind CSS
+- [ApexCharts](https://apexcharts.com) — gráficos
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**Infraestrutura**
+- Docker Compose — Nginx, PHP-FPM, MySQL e Node, todos containerizados
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Como rodar localmente
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Pré-requisitos: Docker e Docker Compose instalados.
 
 ```bash
-composer require laravel/boost --dev
+# 1. clonar o projeto e entrar na pasta
+git clone <url-do-repositorio>
+cd carteira_b3
 
-php artisan boost:install
+# 2. copiar o .env de exemplo
+cp src/.env.example src/.env
+
+# 3. subir os containers (nginx, php, mysql, node)
+docker compose up -d
+
+# 4. instalar dependências do PHP
+docker compose exec --user $(id -u):$(id -g) php composer install
+
+# 5. gerar a chave da aplicação
+docker compose exec --user $(id -u):$(id -g) php php artisan key:generate
+
+# 6. rodar as migrations
+docker compose exec php php artisan migrate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+A aplicação fica disponível em `http://localhost:8000`, e o servidor de
+desenvolvimento do Vite (hot-reload do frontend) em `http://localhost:5173`.
 
-## Contributing
+### Comandos do dia a dia
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Como não há PHP nem Node instalados na máquina host, todo comando roda **dentro
+dos containers** — nunca direto no terminal do host.
 
-## Code of Conduct
+**PHP / Artisan** (dentro do container `php`):
+```bash
+docker compose exec php php artisan migrate
+docker compose exec php php artisan migrate:rollback
+docker compose exec php php artisan tinker
+docker compose exec php php artisan route:list
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Comandos que criam arquivo** (`make:model`, `make:controller`,
+`make:migration`, `make:policy`) precisam de um detalhe a mais —
+`--user $(id -u):$(id -g)` logo depois do `exec`:
+```bash
+docker compose exec --user $(id -u):$(id -g) php php artisan make:model Foo -m
+```
+**Por quê:** o container `php` roda como `root` por padrão. Sem esse `--user`,
+qualquer arquivo criado dentro dele nasce com dono `root` no seu disco — o
+editor não consegue salvar em cima depois (erro `EACCES: permission denied`).
+Esse `--user` força o comando a rodar com o mesmo UID/GID do seu usuário no
+host só naquela execução, sem afetar o container principal (que precisa
+continuar rodando como root pra conseguir iniciar o PHP-FPM corretamente).
 
-## Security Vulnerabilities
+**Node / NPM** (dentro do container `node`):
+```bash
+docker compose exec node npm install <pacote>
+docker compose exec node npm run build
+```
+Esse container já roda com o usuário certo por padrão (configurado no
+`docker-compose.yml`), então não precisa do `--user` aqui.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Se corrigir a permissão de um arquivo que já nasceu com dono `root`** (do
+tempo antes de saber desse detalhe):
+```bash
+sudo chown $(whoami):$(whoami) caminho/do/arquivo.php
+```
 
-## License
+## Estrutura do domínio
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- `Stock` — um ativo cadastrado (ticker + tipo: ação ou FII), pertence a um usuário.
+- `PurchaseLot` — um lote de compra (quantidade, preço, data), pertence a um `Stock`.
+- Quantidade total e preço médio de um `Stock` **não são colunas salvas** — são
+  calculados somando os lotes associados, garantindo que o dado nunca fique
+  dessincronizado.
+
+## Roadmap
+
+- [ ] Integração com [brapi.dev](https://brapi.dev) para cotação atual dos ativos
+- [ ] Comparar capital investido vs. valor de mercado real no gráfico do Dashboard
+- [ ] Editar/remover um lote de compra específico (correção de erro de digitação)
+- [ ] Migrar checagem de permissão dos controllers para Laravel Policies
