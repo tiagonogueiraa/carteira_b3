@@ -20,6 +20,8 @@ import {
     TableEmpty,
 } from '@/components/ui/table';
 
+import { LineChart, Pencil, Trash2 } from '@lucide/vue';
+
 defineProps({
     stocks: {
         type: Array,
@@ -84,20 +86,26 @@ const destroy = (stock) => {
                                         </TableCell>
                                         <TableCell class="text-right">
                                             R$ {{ Number(stock.average_price).toFixed(2) }}
-                                        </TableCell>
+                                        </TableCell>                                       
                                         <TableCell class="text-right">
                                             <div class="flex justify-end gap-2">
-                                                <Button variant="ghost" size="sm" as-child>
-                                                    <Link :href="route('stocks.edit', stock)">
-                                                        Editar
+                                                <Button variant="secondary" size="icon-sm" as-child>
+                                                    <Link :href="route('stocks.show', stock)" title="Ver detalhes">
+                                                        <LineChart class="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                                <Button variant="ghost" size="icon-sm" as-child>
+                                                    <Link :href="route('stocks.edit', stock)" title="Editar">
+                                                        <Pencil class="h-4 w-4" />
                                                     </Link>
                                                 </Button>
                                                 <Button
-                                                    variant="ghost"
-                                                    size="sm"
+                                                    variant="destructive"
+                                                    size="icon-sm"
+                                                    title="Remover"
                                                     @click="destroy(stock)"
                                                 >
-                                                    Remover
+                                                    <Trash2 class="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </TableCell>
