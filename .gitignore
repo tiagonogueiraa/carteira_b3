@@ -2,4 +2,5 @@
 src/vendor/
 src/node_modules/
 src/storage/*.key
-src/.env
+src/.envsrc/.config/
+src/.lesshst
