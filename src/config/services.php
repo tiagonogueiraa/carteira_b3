@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    // api de consulta de ações/cotação
+    'brapi' => [
+        'token' => env('BRAPI_TOKEN'),
+    ],
 ];

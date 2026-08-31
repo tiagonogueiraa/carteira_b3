@@ -35,4 +35,11 @@ class Stock extends Model
 
         return $this->lots->sum(fn ($lot) => $lot->quantity * $lot->price) / $quantity;
     }
+
+    // relacionamento pra sempre pegar a cotação mais recente
+
+    public function market()
+    {
+        return $this->hasOne(StockMarket::class)->latestOfMany();
+    }
 }
