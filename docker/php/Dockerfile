@@ -28,3 +28,4 @@ RUN sed -i "s/^user = .*/user = ${HOST_UID}/" /usr/local/etc/php-fpm.d/www.conf 
 
 # pasta de trabalho padrão dentro do container
 WORKDIR /var/www/html
+ENV HOME=/var/www/html
