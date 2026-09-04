@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\DashboardController;
+USE App\Http\Controllers\TickerSearchController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -32,5 +33,11 @@ Route::middleware('auth')->group(function () {
 // Ações e FIIs
 Route::resource('stocks', StockController::class)
     ->middleware(['auth', 'verified']);
+
+
+// pesquisa de ações
+Route::get('/tickers/search', [TickerSearchController::class, 'search'])
+    ->middleware('auth')
+    ->name('tickers.search');
 
 require __DIR__.'/auth.php';

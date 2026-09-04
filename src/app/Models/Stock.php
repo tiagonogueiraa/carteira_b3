@@ -8,7 +8,7 @@ class Stock extends Model
 {
     protected $fillable = ['ticker', 'type'];
 
-    protected $appends = ['quantity', 'average_price'];
+    protected $appends = ['quantity', 'average_price', 'logo_url'];
 
     public function user()
     {
@@ -41,5 +41,16 @@ class Stock extends Model
     public function market()
     {
         return $this->hasOne(StockMarket::class)->latestOfMany();
+    }
+
+    // relacionamento com o catálogo de tickers da B3, casando pelo símbolo
+    // (não é FK de id — stocks.ticker bate com b3_tickers.symbol)
+    public function b3Ticker()
+    {
+        return $this->belongsTo(B3Ticker::class, 'ticker', 'symbol');
+    }
+    // para pegar a logo e associar no ticker
+    public function getLogoUrlAttribute(){
+        return $this->b3Ticker?->logo_url; // ?-> interrogaão para evitar erro
     }
 }

@@ -22,12 +22,14 @@ import {
 
 import { LineChart, Pencil, Trash2 } from '@lucide/vue';
 
-defineProps({
+const props = defineProps({
     stocks: {
         type: Array,
         required: true,
     },
 });
+
+console.log(props.stocks)
 
 const destroy = (stock) => {
     if (confirm(`Remover ${stock.ticker} da carteira?`)) {
@@ -68,7 +70,8 @@ const destroy = (stock) => {
                             <TableBody>
                                 <template v-if="stocks.length > 0">
                                     <TableRow v-for="stock in stocks" :key="stock.id">
-                                        <TableCell class="font-medium">
+                                        <TableCell class="font-medium flex gap-2 p-4">
+                                            <img :src="stock.logo_url" class="w-5 h-5" />
                                             <Link
                                                 :href="route('stocks.show', stock)"
                                                 class="hover:underline"

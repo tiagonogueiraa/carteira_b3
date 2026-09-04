@@ -13,7 +13,7 @@ class StockController extends Controller
     public function index(Request $request)
     {
         return Inertia::render('Stocks/Index', [
-            'stocks' => $request->user()->stocks()->with('lots')->get(),
+            'stocks' => $request->user()->stocks()->with('lots', 'b3Ticker')->get(),
         ]);
     }
 
@@ -24,17 +24,25 @@ class StockController extends Controller
 
     public function store(Request $request)
     {
+
+        // ticker sempre deve ser maiúsculo
+        $request->merge([
+            'ticker' => strtoupper($request->input('ticker')),
+        ]);
+
         $validated = $request->validate([
-            'ticker' => 'required|string|max:10',
+            'ticker' => 'required|string|max:10|exists:b3_tickers,symbol',
             'type' => 'required|in:acao,fii',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0.01',
             'purchased_at' => 'required|date',
+        ], [
+            'ticker.exists' => 'Esse código de ação não foi encontrado na B3. Verifique se digitou corretamente.',
         ]);
 
         DB::transaction(function () use ($request, $validated) {
             $stock = $request->user()->stocks()->firstOrCreate(
-                ['ticker' => strtoupper($validated['ticker'])],
+                ['ticker' => $validated['ticker']],
                 ['type' => $validated['type']],
             );
 
@@ -91,4 +99,6 @@ class StockController extends Controller
 
         return redirect()->route('stocks.index');
     }
+
+  
 }
