@@ -24,6 +24,16 @@ import {
 
 import ptBr from 'apexcharts/dist/locales/pt-br.json';
 
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+});
+const currencyFormatterCompact = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0,
+});
+
 const props = defineProps({
     stocks: {
         type: Array,
@@ -33,9 +43,18 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    stocksHistory: {
+        type: Object,
+        required: true,
+    },
 });
 
+
+console.log(props);
+console.log(props.stocks);
+console.log(props.netWorthHistory);
 const { isDark } = useDarkMode();
+
 
 // Mesmos valores do :root/.dark do app.css. O ApexCharts desenha em <canvas>/SVG
 // próprio, então não enxerga var(--chart-1) direto — por isso os valores ficam
@@ -50,8 +69,8 @@ const chartSeries = computed(() => [
         data: props.netWorthHistory.map((point) => point.invested),
     },
 ]);
-
 const chartOptions = computed(() => ({
+    
     chart: {
         toolbar: { show: false },
         background: 'transparent',
@@ -83,12 +102,56 @@ const chartOptions = computed(() => ({
     yaxis: {
         labels: {
             style: { colors: mutedColor.value },
-            formatter: (value) => `R$ ${Number(value).toFixed(0)}`,
+            formatter: (value) => currencyFormatterCompact.format(Number(value)),
         },
     },
     tooltip: {
         theme: isDark.value ? 'dark' : 'light',
-        y: { formatter: (value) => `R$ ${Number(value).toFixed(2)}` },
+        y: { formatter: (value) => currencyFormatter.format(Number(value)) },
+    },
+}));
+
+const chartSeriesAcoesGroup = computed(() => props.stocksHistory.series);
+
+const chartAcoesGroup = computed(() => ({
+    chart: {
+        toolbar: { show: false },
+        background: 'transparent',
+        fontFamily: 'inherit',
+        locales: [ptBr],
+        defaultLocale: 'pt-br',
+    },
+    stroke: {
+        curve: 'smooth',
+        width: 2,
+    },
+    markers: {
+        size: 4,
+    },
+    dataLabels: { enabled: false },
+    legend: {
+        show: true,
+        labels: { colors: mutedColor.value },
+    },
+    grid: {
+        borderColor: borderColor.value,
+        strokeDashArray: 4,
+    },
+    xaxis: {
+        categories: props.stocksHistory.categories,
+        labels: { style: { colors: mutedColor.value } },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+    },
+    yaxis: {
+        labels: {
+            style: { colors: mutedColor.value },
+            formatter: (value) => currencyFormatterCompact.format(Number(value)),
+        },
+    },
+    tooltip: {
+        theme: isDark.value ? 'dark' : 'light',
+        y: { formatter: (value) => currencyFormatter.format(Number(value)) },
     },
 }));
 </script>
@@ -119,6 +182,23 @@ const chartOptions = computed(() => ({
                             height="280"
                             :options="chartOptions"
                             :series="chartSeries"
+                        />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Patrimônio investido AÇÔES</CardTitle>
+                        <CardDescription>
+                            Capital acumulado nos últimos 6 meses (não inclui
+                            valorização de mercado ainda)
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <VueApexCharts
+                            type="line"
+                            height="280"
+                            :options="chartAcoesGroup"
+                            :series="chartSeriesAcoesGroup"
                         />
                     </CardContent>
                 </Card>
@@ -158,7 +238,7 @@ const chartOptions = computed(() => ({
                                             {{ stock.quantity }}
                                         </TableCell>
                                         <TableCell class="text-right">
-                                            R$ {{ Number(stock.average_price).toFixed(2) }}
+                                            {{ currencyFormatter.format(Number(stock.average_price)) }}
                                         </TableCell>
                                     </TableRow>
                                 </template>

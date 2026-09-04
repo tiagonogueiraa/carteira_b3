@@ -22,16 +22,40 @@ class DashboardController extends Controller
             $invested = $stocks->flatMap->lots
                 ->filter(fn ($lot) => $lot->purchased_at->lte($referenceDate))
                 ->sum(fn ($lot) => $lot->quantity * $lot->price);
-
+                
             return [
                 'month' => $referenceDate->translatedFormat('M/y'),
                 'invested' => round($invested, 2),
             ];
         });
 
+        // Mesmo cálculo, mas quebrado por ação: uma série por ticker, cada
+        // uma com o capital investido acumulado até o fim de cada mês.
+        $stocksHistorySeries = $stocks->map(function ($stock) {
+            $data = collect(range(5, 0))->map(function (int $monthsAgo) use ($stock) {
+                $referenceDate = now()->subMonths($monthsAgo)->endOfMonth();
+
+                return round(
+                    $stock->lots
+                        ->filter(fn ($lot) => $lot->purchased_at->lte($referenceDate))
+                        ->sum(fn ($lot) => $lot->quantity * $lot->price),
+                    2
+                );
+            });
+
+            return [
+                'name' => $stock->ticker,
+                'data' => $data,
+            ];
+        })->values();
+
         return Inertia::render('Dashboard', [
             'stocks' => $stocks,
             'netWorthHistory' => $months,
+            'stocksHistory' => [
+                'categories' => $months->pluck('month'),
+                'series' => $stocksHistorySeries,
+            ],
         ]);
     }
 }
