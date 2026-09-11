@@ -154,6 +154,39 @@ const chartAcoesGroup = computed(() => ({
         y: { formatter: (value) => currencyFormatter.format(Number(value)) },
     },
 }));
+
+
+const totalInvestido = computed(() =>
+    props.stocks.reduce(
+        (sum, stock) => sum + stock.quantity * Number(stock.average_price),
+        0
+    )
+);
+
+const totalMercado = computed(() =>
+    props.stocks.reduce((sum, stock) => {
+        const precoAtual = stock.market?.regular_market_price ?? stock.average_price;
+        return sum + stock.quantity * Number(precoAtual);
+    }, 0)
+);
+
+const percentualGanho = computed(() => {
+    if (totalInvestido.value === 0) return 0;
+    return ((totalMercado.value - totalInvestido.value) / totalInvestido.value) * 100;
+});
+
+// SOMA TOTAIS TABELAS
+const stocksComTotais = computed(() =>
+    props.stocks.map((stock) => {
+        const investido = stock.quantity * Number(stock.average_price);
+        const precoAtual = stock.market?.regular_market_price ?? stock.average_price;
+        const mercado = stock.quantity * Number(precoAtual);
+        const percentual = investido === 0 ? 0 : ((mercado - investido) / investido) * 100;
+
+        return { ...stock, investido, mercado, percentual };
+    })
+);
+
 </script>
 
 <template>
@@ -165,8 +198,32 @@ const chartAcoesGroup = computed(() => ({
                 Minhas ações
             </h2>
         </template>
-
+        
         <div class="py-12">
+            <div class="p-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-7xl grid gap-4 sm:grid-cols-3">
+                    <Card>
+                        <CardHeader>
+                            <CardDescription>Total investido</CardDescription>
+                            <CardTitle>{{ currencyFormatter.format(totalInvestido) }}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardDescription>Valor de mercado</CardDescription>
+                            <CardTitle>{{ currencyFormatter.format(totalMercado) }}</CardTitle>
+                        </CardHeader>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardDescription>Rentabilidade</CardDescription>
+                            <CardTitle :class="percentualGanho >= 0 ? 'text-green-600' : 'text-red-600'">
+                                {{ percentualGanho >= 0 ? '+' : '' }}{{ percentualGanho.toFixed(2) }}%
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            </div>
             <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                 <Card>
                     <CardHeader>
@@ -216,11 +273,15 @@ const chartAcoesGroup = computed(() => ({
                                     <TableHead>Tipo</TableHead>
                                     <TableHead class="text-right">Quantidade</TableHead>
                                     <TableHead class="text-right">Preço médio</TableHead>
+                                    <TableHead class="text-right">Preço de mercado</TableHead>
+                                    <TableHead class="text-right">Total investido</TableHead>
+                                    <TableHead class="text-right">Total mercado</TableHead>
+                                    <TableHead class="text-right">Rentabilidade</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <template v-if="stocks.length > 0">
-                                    <TableRow v-for="stock in stocks" :key="stock.id">
+                                <template v-if="stocksComTotais.length > 0">
+                                    <TableRow v-for="stock in stocksComTotais" :key="stock.id">
                                         <TableCell class="font-medium">
                                             <Link
                                                 :href="route('stocks.show', stock)"
@@ -240,9 +301,27 @@ const chartAcoesGroup = computed(() => ({
                                         <TableCell class="text-right">
                                             {{ currencyFormatter.format(Number(stock.average_price)) }}
                                         </TableCell>
+                                        <TableCell class="text-right">
+                                            {{ stock.market?.regular_market_price
+                                                ? currencyFormatter.format(Number(stock.market.regular_market_price))
+                                                : '—' }}
+                                        </TableCell>
+                                        <TableCell class="text-right">
+                                            {{ currencyFormatter.format(stock.investido) }}
+                                        </TableCell>
+                                        <TableCell class="text-right">
+                                            {{ currencyFormatter.format(stock.mercado) }}
+                                        </TableCell>
+                                        <TableCell
+                                            class="text-right"
+                                            :class="stock.percentual >= 0 ? 'text-green-600' : 'text-red-600'"
+                                        >
+                                            {{ stock.percentual >= 0 ? '+' : '' }}{{ stock.percentual.toFixed(2) }}%
+                                        </TableCell>
+
                                     </TableRow>
                                 </template>
-                                <TableEmpty v-else :colspan="4">
+                                <TableEmpty v-else :colspan="8">
                                     Nenhuma ação cadastrada ainda.
                                 </TableEmpty>
                             </TableBody>
