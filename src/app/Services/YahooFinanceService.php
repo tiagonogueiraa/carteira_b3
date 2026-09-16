@@ -3,16 +3,26 @@
 namespace App\Services;
 
 use Scheb\YahooFinanceApi\ApiClientFactory;
+use Scheb\YahooFinanceApi\ApiClient;
 use Illuminate\Support\Facades\Log;
 
 class YahooFinanceService
 {
+    private ?ApiClient $client = null;
+
+    private function client(): ApiClient
+    {
+        if (!$this->client) {
+            $this->client = ApiClientFactory::createApiClient(retries: 2, retryDelay: 1000);
+        }
+
+        return $this->client;
+    }
+
     public function buscarCotacao(string $ticker): ?array
     {
-        $client = ApiClientFactory::createApiClient(retries: 2, retryDelay: 1000);
-
         try {
-            $quote = $client->getQuote("{$ticker}.SA");
+            $quote = $this->client()->getQuote("{$ticker}.SA");
             return (array) $quote;
         } catch (\Exception $e) {
             Log::warning("Yahoo cotacao falhou para {$ticker}: " . $e->getMessage());
@@ -22,10 +32,8 @@ class YahooFinanceService
 
     public function buscarDividendos(string $ticker, int $anos = 1): array
     {
-        $client = ApiClientFactory::createApiClient(retries: 2, retryDelay: 1000);
-
         try {
-            return $client->getHistoricalDividendData(
+            return $this->client()->getHistoricalDividendData(
                 "{$ticker}.SA",
                 new \DateTime("-{$anos} years"),
                 new \DateTime("today")
