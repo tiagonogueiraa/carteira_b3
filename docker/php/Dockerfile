@@ -16,7 +16,21 @@ RUN apt-get update && apt-get install -y \
 # pcntl     -> controle de processos (usado por filas/queues do Laravel)
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# ------------------------------------------------------------
+# CURL-IMPERSONATE - permite fazer requisições HTTP que imitam
+# a "assinatura" de um navegador real (Chrome), reduzindo risco
+# de bloqueio em APIs não-oficiais (ex: Yahoo Finance)
+# ------------------------------------------------------------
+RUN apt-get install -y wget ca-certificates \
+    && ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then CURL_ARCH="x86_64-linux-gnu"; \
+       elif [ "$ARCH" = "arm64" ]; then CURL_ARCH="aarch64-linux-gnu"; \
+       else echo "Arquitetura não suportada: $ARCH" && exit 1; \
+       fi \
+    && wget -q "https://github.com/lexiforest/curl-impersonate/releases/download/v2.0.0/libcurl-impersonate-v2.0.0.${CURL_ARCH}.tar.gz" \
+    && mkdir -p /opt/curl-impersonate \
+    && tar -xzf "libcurl-impersonate-v2.0.0.${CURL_ARCH}.tar.gz" -C /opt/curl-impersonate \
+    && rm "libcurl-impersonate-v2.0.0.${CURL_ARCH}.tar.gz"
 
 # copia o binário do Composer direto de uma imagem oficial dele
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

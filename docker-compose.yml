@@ -30,6 +30,9 @@ services:
         HOST_UID: ${HOST_UID}
         HOST_GID: ${HOST_GID}
     user: "${HOST_UID}:${HOST_GID}" # definir o usuario e do arquivo do pc
+    environment:
+      - LD_PRELOAD=/opt/curl-impersonate/libcurl-impersonate.so
+      - CURL_IMPERSONATE=chrome136
     volumes:
       - ./src:/var/www/html      # mesmo código compartilhado com o nginx
     depends_on:
