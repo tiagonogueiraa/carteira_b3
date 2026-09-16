@@ -8,7 +8,7 @@ class Stock extends Model
 {
     protected $fillable = ['ticker', 'type'];
 
-    protected $appends = ['quantity', 'average_price', 'logo_url'];
+    protected $appends = ['quantity', 'average_price', 'logo_url', 'total_dividends'];
 
     public function user()
     {
@@ -53,4 +53,51 @@ class Stock extends Model
     public function getLogoUrlAttribute(){
         return $this->b3Ticker?->logo_url; // ?-> interrogaão para evitar erro
     }
+
+    public function dividends(){
+        return $this->hasMany(StockDividend::class);
+    }
+
+    public function getTotalDividendsAttribute(): float
+    {
+
+        return $this->dividends->sum(function ($dividendo) {
+            $quantidadeNaData = $this->lots
+                ->filter(fn ($lot) => $lot->purchased_at->lte($dividendo->payment_date))
+                ->sum('quantity');
+
+            return $quantidadeNaData * $dividendo->amount;
+        });
+        // $totalDividendos = 0;
+
+        // // 2. Passa por CADA dividendo pago dessa ação, um de cada vez
+        // foreach ($this->dividends as $dividendo) {
+
+        //     // 3. Pra esse dividendo específico, preciso saber quantas ações
+        //     //    eu já tinha na data em que ele foi pago. Começa contando do zero.
+        //     $quantidadeNaData = 0;
+
+        //     // 4. Passa por TODOS os lotes de compra dessa ação
+        //     foreach ($this->lots as $lote) {
+
+        //         // 5. Só conta esse lote se ele foi comprado ANTES ou NA MESMA
+        //         //    data do pagamento do dividendo que estou analisando agora
+        //         if ($lote->purchased_at->lte($dividendo->payment_date)) {
+        //             $quantidadeNaData += $lote->quantity;
+        //         }
+        //     }
+
+        //     // 6. Já sei quantas ações eu tinha nessa data -> calculo quanto
+        //     //    recebi NESSE dividendo específico
+        //     $valorRecebidoNesseDividendo = $quantidadeNaData * $dividendo->amount;
+
+        //     // 7. Soma esse valor no total geral (guardado fora do loop de lotes)
+        //     $totalDividendos += $valorRecebidoNesseDividendo;
+        // }
+
+        // // 8. Depois de passar por todos os dividendos, devolve o total acumulado
+        // return $totalDividendos;
+    }
+
+
 }

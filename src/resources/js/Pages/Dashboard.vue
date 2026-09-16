@@ -22,6 +22,8 @@ import {
     TableEmpty,
 } from '@/components/ui/table';
 
+import { Wallet, LineChart, TrendingUp, TrendingDown, HandCoins } from '@lucide/vue';
+
 import ptBr from 'apexcharts/dist/locales/pt-br.json';
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -166,14 +168,16 @@ const totalInvestido = computed(() =>
 const totalMercado = computed(() =>
     props.stocks.reduce((sum, stock) => {
         const precoAtual = stock.market?.regular_market_price ?? stock.average_price;
-        return sum + stock.quantity * Number(precoAtual);
+        return sum + stock.quantity * Number(precoAtual) ;
     }, 0)
 );
 
-const percentualGanho = computed(() => {
-    if (totalInvestido.value === 0) return 0;
-    return ((totalMercado.value - totalInvestido.value) / totalInvestido.value) * 100;
-});
+
+
+// TOTAL DIVIDENDOS
+const totalDividendos = computed(() =>
+props.stocks.reduce((sum, stock) => sum + Number(stock.total_dividends), 0)
+);
 
 // SOMA TOTAIS TABELAS
 const stocksComTotais = computed(() =>
@@ -182,10 +186,21 @@ const stocksComTotais = computed(() =>
         const precoAtual = stock.market?.regular_market_price ?? stock.average_price;
         const mercado = stock.quantity * Number(precoAtual);
         const percentual = investido === 0 ? 0 : ((mercado - investido) / investido) * 100;
-
-        return { ...stock, investido, mercado, percentual };
+        const dividendos = stock.total_dividends;
+        
+        return { ...stock, investido, mercado, percentual, dividendos };
     })
 );
+
+// total com dividendos
+const totalComDividendos = computed(() => totalMercado.value + totalDividendos.value);
+
+const percentualGanho = computed(() => {
+    if (totalInvestido.value === 0) return 0;
+    return ((totalComDividendos.value - totalInvestido.value) / totalInvestido.value) * 100;
+});
+console.log('total mercado  ', totalMercado.value);
+console.log('total dividendos', totalDividendos.value);
 
 </script>
 
@@ -201,26 +216,55 @@ const stocksComTotais = computed(() =>
         
         <div class="py-12">
             <div class="p-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="mx-auto max-w-7xl grid gap-4 sm:grid-cols-3">
-                    <Card>
-                        <CardHeader>
+                <div class="mx-auto max-w-7xl grid gap-4 sm:grid-cols-5">
+                   <Card>
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardDescription>Total investido</CardDescription>
+                            <Wallet class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
                             <CardTitle>{{ currencyFormatter.format(totalInvestido) }}</CardTitle>
-                        </CardHeader>
+                        </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader>
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardDescription>Valor de mercado</CardDescription>
-                            <CardTitle>{{ currencyFormatter.format(totalMercado) }}</CardTitle>
+                            <LineChart class="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
+                        <CardContent>
+                            <CardTitle>{{ currencyFormatter.format(totalMercado) }}</CardTitle>
+                        </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader>
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardDescription>Valor com dividendos</CardDescription>
+                            <HandCoins class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <CardTitle>{{ currencyFormatter.format(totalComDividendos) }}</CardTitle>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardDescription>Rentabilidade</CardDescription>
+                            <TrendingUp class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
                             <CardTitle :class="percentualGanho >= 0 ? 'text-green-600' : 'text-red-600'">
                                 {{ percentualGanho >= 0 ? '+' : '' }}{{ percentualGanho.toFixed(2) }}%
-                            </CardTitle>
+                            </CardTitle>             
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardDescription>Total em dividendos</CardDescription>
+                            <TrendingDown class="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
+                        <CardContent>
+                            <CardTitle>
+                                {{ currencyFormatter.format(totalDividendos) }}
+                            </CardTitle>
+                        </CardContent>                        
                     </Card>
                 </div>
             </div>

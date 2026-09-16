@@ -10,8 +10,9 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $stocks = $request->user()->stocks()->with('lots', 'market')->get();
+        $stocks = $request->user()->stocks()->with('lots', 'market', 'dividends')->get();
 
+        // dd($stocks);
 
         // Gera os 6 pontos do gráfico (5 meses atrás até o mês atual). Pra cada
         // um, soma quantidade × preço de todo lote comprado até o fim daquele
