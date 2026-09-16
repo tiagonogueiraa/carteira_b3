@@ -99,5 +99,10 @@ class Stock extends Model
         // return $totalDividendos;
     }
 
+    public function marketHistory()
+    {
+        return $this->hasMany(StockMarket::class);
+    }
+
 
 }

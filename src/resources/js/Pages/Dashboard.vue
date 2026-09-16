@@ -49,6 +49,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    dailyHistory: {
+        type: Array,
+        required: true,
+    },
 });
 
 
@@ -65,12 +69,18 @@ const chartColor = computed(() => (isDark.value ? 'hsl(220 70% 50%)' : 'hsl(12 7
 const mutedColor = computed(() => (isDark.value ? 'hsl(0 0% 63.9%)' : 'hsl(0 0% 45.1%)'));
 const borderColor = computed(() => (isDark.value ? 'hsl(0 0% 14.9%)' : 'hsl(0 0% 89.8%)'));
 
-const chartSeries = computed(() => [
-    {
-        name: 'Capital investido',
-        data: props.netWorthHistory.map((point) => point.invested),
-    },
+// const chartSeries = computed(() => [
+//     {
+//         name: 'Capital investido',
+//         data: props.netWorthHistory.map((point) => point.invested),
+//     },
+// ]);
+console.log('props.dailyHistory', props.dailyHistory);
+const chartSeriesDiario = computed(() => [
+    { name: 'Valor de mercado', data: props.dailyHistory.map(d => d.mercado) },
+    { name: 'Valor com dividendos', data: props.dailyHistory.map(d => d.comDividendos) },
 ]);
+
 const chartOptions = computed(() => ({
     
     chart: {
@@ -80,23 +90,26 @@ const chartOptions = computed(() => ({
         locales: [ptBr],
         defaultLocale: 'pt-br',
     },
-    colors: [chartColor.value],
+    colors: [
+        chartColor.value,                          // Valor de mercado
+        isDark.value ? 'hsl(142 71% 45%)' : 'hsl(142 76% 36%)', // Valor com dividendos (verde)
+    ],
     stroke: {
         curve: 'smooth',
         width: 2,
     },
     markers: {
         size: 4,
-        colors: [chartColor.value],
+        // colors: [chartColor.value],
     },
     dataLabels: { enabled: false },
-    legend: { show: false },
+    legend: { show: true },
     grid: {
         borderColor: borderColor.value,
         strokeDashArray: 4,
     },
     xaxis: {
-        categories: props.netWorthHistory.map((point) => point.month),
+        categories: props.dailyHistory.map((d) => d.date),
         labels: { style: { colors: mutedColor.value } },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -282,7 +295,7 @@ console.log('total dividendos', totalDividendos.value);
                             type="line"
                             height="280"
                             :options="chartOptions"
-                            :series="chartSeries"
+                            :series="chartSeriesDiario"
                         />
                     </CardContent>
                 </Card>
