@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Stock;
+use App\Models\StockSyncLog;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
