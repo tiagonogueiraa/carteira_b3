@@ -44,7 +44,7 @@ const { isDark, toggleDark } = useDarkMode();
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
                                 >
-                                    Dashboard
+                                    Minha carteira
                                 </NavLink>
                             </div>
                         </div>
