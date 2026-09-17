@@ -98,10 +98,10 @@ const tickerSelecionado = ref('');
 
   <AuthenticatedLayout>
     <template #header>
-      <h2 class="text-xl font-semibold leading-tight text-gray-800">
+      <h2 class="text-xl font-semibold leading-tight text-foreground">
         Minha Carteira — Design System
       </h2>
-      <p class="mt-1 text-sm text-gray-500">
+      <p class="mt-1 text-sm text-muted-foreground">
         Referência de componentes (shadcn-vue) e ícones (lucide) usados no projeto Minha Carteira.
       </p>
     </template>
@@ -246,10 +246,10 @@ const tickerSelecionado = ref('');
             <div
               v-for="icone in iconesExemplo"
               :key="icone.nome"
-              class="flex flex-col items-center gap-2 rounded-lg border border-gray-100 p-4 text-center"
+              class="flex flex-col items-center gap-2 rounded-lg bg-card text-card-foreground shadow-xs ring-1 ring-foreground/10 p-4 text-center"
             >
               <component :is="icone.componente" class="size-6 text-emerald-600" />
-              <span class="text-xs text-gray-500">{{ icone.nome }}</span>
+              <span class="text-xs text-muted-foreground">{{ icone.nome }}</span>
             </div>
           </CardContent>
         </Card>
@@ -298,7 +298,7 @@ const tickerSelecionado = ref('');
                 <DropdownMenuItem>Editar</DropdownMenuItem>
                 <DropdownMenuItem>Duplicar</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem class="text-red-600">Remover</DropdownMenuItem>
+                <DropdownMenuItem class="text-destructive">Remover</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </CardContent>
@@ -317,13 +317,13 @@ const tickerSelecionado = ref('');
                 <TabsTrigger value="fiis">FIIs</TabsTrigger>
                 <TabsTrigger value="renda-fixa">Renda Fixa</TabsTrigger>
               </TabsList>
-              <TabsContent value="acoes" class="pt-4 text-sm text-gray-600">
+              <TabsContent value="acoes" class="pt-4 text-sm text-muted-foreground">
                 Conteúdo da aba de Ações.
               </TabsContent>
-              <TabsContent value="fiis" class="pt-4 text-sm text-gray-600">
+              <TabsContent value="fiis" class="pt-4 text-sm text-muted-foreground">
                 Conteúdo da aba de FIIs.
               </TabsContent>
-              <TabsContent value="renda-fixa" class="pt-4 text-sm text-gray-600">
+              <TabsContent value="renda-fixa" class="pt-4 text-sm text-muted-foreground">
                 Conteúdo da aba de Renda Fixa.
               </TabsContent>
             </Tabs>
@@ -363,7 +363,7 @@ const tickerSelecionado = ref('');
               <AvatarFallback>TN</AvatarFallback>
             </Avatar>
             <Separator orientation="vertical" class="h-8" />
-            <span class="text-sm text-gray-600">Exemplo de avatar com fallback de iniciais</span>
+            <span class="text-sm text-muted-foreground">Exemplo de avatar com fallback de iniciais</span>
           </CardContent>
         </Card>
 
