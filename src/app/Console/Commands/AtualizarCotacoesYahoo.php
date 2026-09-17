@@ -21,7 +21,7 @@ class AtualizarCotacoesYahoo extends Command
 
         foreach ($tickers as $ticker) {
             $dados = $yahoo->buscarCotacao($ticker);
-
+            
             StockSyncLog::create([
                 'ticker' => $ticker,
                 'status' => $dados ? 'success' : 'error',
@@ -30,6 +30,8 @@ class AtualizarCotacoesYahoo extends Command
             ]);
 
             sleep(rand(2, 5)); // espaçamento entre requisições
+
+            $this->info("{$ticker}: " . ($dados ? 'atualizado' : 'falhou'));
         }
     }
 }
