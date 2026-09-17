@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockSyncLog extends Model
 {
-    protected $fillable = ['ticker', 'status', 'response', 'error_message', 'status_code'];
+    protected $fillable = ['ticker', 'status', 'response', 'error_message', 'status_code', 'source'];
 
     protected $casts = [
         'response' => 'array', // salva/lê como JSON automaticamente
