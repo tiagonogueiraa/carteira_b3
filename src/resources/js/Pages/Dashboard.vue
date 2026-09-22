@@ -56,9 +56,10 @@ const props = defineProps({
 });
 
 
-console.log(props);
-console.log(props.stocks);
-console.log(props.netWorthHistory);
+// console.log(props);
+// console.log(props.stocks);
+// console.log(props.netWorthHistory);
+console.log('props.stocksHistory', props.stocksHistory);
 const { isDark } = useDarkMode();
 
 
@@ -75,7 +76,7 @@ const borderColor = computed(() => (isDark.value ? 'hsl(0 0% 14.9%)' : 'hsl(0 0%
 //         data: props.netWorthHistory.map((point) => point.invested),
 //     },
 // ]);
-console.log('props.dailyHistory', props.dailyHistory);
+// console.log('props.dailyHistory', props.dailyHistory);
 const chartSeriesDiario = computed(() => [
     { name: 'Valor de mercado', data: props.dailyHistory.map(d => d.mercado) },
     { name: 'Valor com dividendos', data: props.dailyHistory.map(d => d.comDividendos) },

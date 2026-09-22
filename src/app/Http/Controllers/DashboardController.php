@@ -31,18 +31,34 @@ class DashboardController extends Controller
             ];
         });
 
-        // Mesmo cálculo, mas quebrado por ação: uma série por ticker, cada
-        // uma com o capital investido acumulado até o fim de cada mês.
-        $stocksHistorySeries = $stocks->map(function ($stock) {
-            $data = collect(range(5, 0))->map(function (int $monthsAgo) use ($stock) {
-                $referenceDate = now()->subMonths($monthsAgo)->endOfMonth();
+        $days = collect(range(29, 0))->map(function (int $daysAgo) use ($stocks) {
+            $referenceDate = now()->subDays($daysAgo)->endOfDay();
 
-                return round(
-                    $stock->lots
-                        ->filter(fn ($lot) => $lot->purchased_at->lte($referenceDate))
-                        ->sum(fn ($lot) => $lot->quantity * $lot->price),
-                    2
-                );
+            $invested = $stocks->flatMap->lots
+                ->filter(fn ($lot) => $lot->purchased_at->lte($referenceDate))
+                ->sum(fn ($lot) => $lot->quantity * $lot->price);
+
+            return [
+                'day' => $referenceDate->translatedFormat('d/M'),
+                'invested' => round($invested, 2),
+            ];
+        });
+        
+        $stocksHistorySeries = $stocks->map(function ($stock) {
+            $data = collect(range(29, 0))->map(function (int $daysAgo) use ($stock) {
+                $referenceDate = now()->subDays($daysAgo)->endOfDay();
+
+                $quantidade = $stock->lots
+                    ->filter(fn ($lot) => $lot->purchased_at->lte($referenceDate))
+                    ->sum('quantity');
+
+                $precoNaData = $stock->marketHistory
+                    ->filter(fn ($m) => $m->created_at->lte($referenceDate))
+                    ->sortByDesc('created_at')
+                    ->first()
+                    ?->regular_market_price ?? $stock->average_price;
+
+                return round($quantidade * $precoNaData, 2);
             });
 
             return [
@@ -104,9 +120,9 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'stocks' => $stocks,
-            'netWorthHistory' => $months,
+            'netWorthHistory' => $dailyHistory,
             'stocksHistory' => [
-                'categories' => $months->pluck('month'),
+                'categories' => $dailyHistory->pluck('date'),
                 'series' => $stocksHistorySeries,
             ],
             'dailyHistory' => $dailyHistory,
