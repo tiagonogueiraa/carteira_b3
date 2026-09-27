@@ -6,7 +6,7 @@ ARG HOST_GID=1000
 
 # instala pacotes de sistema necessários pra compilar certas extensões do PHP
 RUN apt-get update && apt-get install -y \
-    git curl libpng-dev libonig-dev libxml2-dev zip unzip
+    git curl libpng-dev libonig-dev libxml2-dev libzip-dev zip unzip
 
 # instala as extensões do PHP que o Laravel precisa:
 # pdo_mysql -> conectar com MySQL
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 # exif, gd  -> manipulação de imagem
 # bcmath    -> cálculo com precisão decimal (ótimo pro seu caso, valores financeiros!)
 # pcntl     -> controle de processos (usado por filas/queues do Laravel)
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # ------------------------------------------------------------
 # CURL-IMPERSONATE - permite fazer requisições HTTP que imitam
