@@ -20,13 +20,12 @@ class SincronizarDividendos extends Command
         $tickers = Stock::distinct()->pluck('ticker');
 
         foreach ($tickers as $ticker) {
-            $stock = Stock::where('ticker', $ticker)->first();
             $dividendos = $yahoo->buscarDividendos($ticker, anos: 1);
 
             foreach ($dividendos as $div) {
                 StockDividend::updateOrCreate(
                     [
-                        'stock_id' => $stock->id,
+                        'ticker' => $ticker,
                         'payment_date' => $div->getDate()->format('Y-m-d'),
                     ],
                     [

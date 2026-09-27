@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class StockMarket extends Model
 {
     protected $fillable = [
-        'stock_id', 'short_name', 'long_name', 'currency',
+        'ticker', 'short_name', 'long_name', 'currency',
         'regular_market_price', 'regular_market_day_high', 'regular_market_day_low',
         'regular_market_day_range', 'regular_market_change', 'regular_market_change_percent',
         'regular_market_time', 'market_cap', 'regular_market_volume',
@@ -18,9 +18,4 @@ class StockMarket extends Model
     protected $casts = [
         'regular_market_time' => 'datetime',
     ];
-
-    public function stock()
-    {
-        return $this->belongsTo(Stock::class);
-    }
 }

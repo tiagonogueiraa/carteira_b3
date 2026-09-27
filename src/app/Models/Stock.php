@@ -36,11 +36,12 @@ class Stock extends Model
         return $this->lots->sum(fn ($lot) => $lot->quantity * $lot->price) / $quantity;
     }
 
-    // relacionamento pra sempre pegar a cotação mais recente
-
+    // relacionamento pra sempre pegar a cotação mais recente. Casa por ticker
+    // (não por FK de stock_id) porque a cotação é a mesma pra todo mundo que
+    // tem essa ação, não é algo específico de uma linha de Stock de um usuário.
     public function market()
     {
-        return $this->hasOne(StockMarket::class)->latestOfMany();
+        return $this->hasOne(StockMarket::class, 'ticker', 'ticker')->latestOfMany();
     }
 
     // relacionamento com o catálogo de tickers da B3, casando pelo símbolo
@@ -54,8 +55,10 @@ class Stock extends Model
         return $this->b3Ticker?->logo_url; // ?-> interrogaão para evitar erro
     }
 
+    // idem ao market(): dividendo pago é o mesmo pra todo mundo com o ticker,
+    // casa por ticker em vez de stock_id.
     public function dividends(){
-        return $this->hasMany(StockDividend::class);
+        return $this->hasMany(StockDividend::class, 'ticker', 'ticker');
     }
 
     public function getTotalDividendsAttribute(): float
@@ -101,7 +104,7 @@ class Stock extends Model
 
     public function marketHistory()
     {
-        return $this->hasMany(StockMarket::class);
+        return $this->hasMany(StockMarket::class, 'ticker', 'ticker');
     }
 
 

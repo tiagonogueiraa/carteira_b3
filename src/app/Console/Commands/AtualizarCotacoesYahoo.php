@@ -31,10 +31,8 @@ class AtualizarCotacoesYahoo extends Command
             ]);
 
             if ($dados) {
-                $stock = Stock::where('ticker', $ticker)->first();
-
                 StockMarket::create([
-                    'stock_id' => $stock->id,
+                    'ticker' => $ticker,
                     'short_name' => $dados['shortName'] ?? null,
                     'long_name' => $dados['longName'] ?? null,
                     'currency' => $dados['currency'] ?? null,
