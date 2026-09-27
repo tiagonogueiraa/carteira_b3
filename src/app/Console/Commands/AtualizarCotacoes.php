@@ -26,14 +26,13 @@ class AtualizarCotacoes extends Command
 
             
 
-            $stock = Stock::where('ticker', $ticker)->first();
             $result = $response->json('results.0');
 
             if ($response->successful() && $result && isset($result['symbol'])) {
                 $data = $result;
 
                 StockMarket::create([
-                    'stock_id' => $stock->id,
+                    'ticker' => $ticker,
                     'short_name' => $data['shortName'] ?? null,
                     'long_name' => $data['longName'] ?? null,
                     'currency' => $data['currency'] ?? null,
