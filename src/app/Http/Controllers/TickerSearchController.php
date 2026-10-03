@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\B3Ticker;
+use App\Models\StockMarket;
 
 class TickerSearchController extends Controller
 {
@@ -23,7 +24,14 @@ class TickerSearchController extends Controller
                     ->orWhere('name', 'like', '%' . $term . '%');
             })
             ->limit(10)
-            ->get(['symbol', 'name', 'logo_url']);
+            ->get(['symbol', 'name', 'logo_url'])
+            ->map(function ($ticker){
+                $ticker->preco = StockMarket::where('ticker', $ticker->symbol)
+                    ->latest('created_at')
+                    ->value('regular_market_price');
+
+                return $ticker;
+            });
 
             return response()->json($results);
         

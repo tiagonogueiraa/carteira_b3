@@ -74,6 +74,11 @@ watch(() => form.ticker, (novoValor) => {
 function selecionarTicker(ticker) {
     ignoraProximaBusca = true;
     form.ticker = ticker.symbol;
+
+    if(ticker.preco) {
+        form.price = ticker.preco;
+    }
+
     showSuggestions.value = false;
     tickerSuggestions.value = [];
 }
@@ -115,7 +120,7 @@ const submit = () => {
                                     </p>
                                     <ul
                                         v-if="showSuggestions && tickerSuggestions.length"
-                                        class="absolute z-10 w-full text-popover-foreground border bg-popover rounded-md mt-1 shadow-lg max-h-60 overflow-auto"
+                                        class="absolute z-10 w-full max-w-[45%] text-popover-foreground border bg-popover rounded-md mt-1 shadow-lg max-h-60 overflow-auto [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted))_transparent]"
                                     >
                                         <li
                                             v-for="ticker in tickerSuggestions"
