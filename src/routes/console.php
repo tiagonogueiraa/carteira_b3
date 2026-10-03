@@ -15,7 +15,7 @@ Schedule::command('app:atualizar-cotacoes')->dailyAt('10:10');
 // Cotação experimental via Yahoo — de 30 em 30 min, só durante o pregão (seg-sex, 10h-17h)
 Schedule::command('app:atualizar-cotacoes-yahoo')
     ->everyThirtyMinutes()
-    ->between('10:00', '17:00')
+    ->between('10:00', '17:30')
     ->weekdays();
 
 // Dividendos — dado histórico, roda 1x por dia, fora do horário de pico (evita concorrer com as cotações)
