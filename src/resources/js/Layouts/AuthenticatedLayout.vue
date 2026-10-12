@@ -46,6 +46,12 @@ const { isDark, toggleDark } = useDarkMode();
                                 >
                                     Minha carteira
                                 </NavLink>
+                                <NavLink
+                                    :href="route('stocks.index')"
+                                    :active="route().current('stocks.index')"
+                                >
+                                    Ações
+                                </NavLink>
                             </div>
                         </div>
 

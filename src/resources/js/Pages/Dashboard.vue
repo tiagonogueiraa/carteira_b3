@@ -1,7 +1,7 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import VueApexCharts from 'vue3-apexcharts';
 import { useDarkMode } from '@/Composables/Usedarkmode';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,8 @@ import {
 import { Wallet, LineChart, TrendingUp, TrendingDown, HandCoins } from '@lucide/vue';
 
 import ptBr from 'apexcharts/dist/locales/pt-br.json';
+
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -53,15 +55,14 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    periodoSelecionado: {
+        type: String,
+        default: '7d',
+    },
 });
 
-
-// console.log(props);
-// console.log(props.stocks);
-// console.log(props.netWorthHistory);
 console.log('props.stocksHistory', props.stocksHistory);
 const { isDark } = useDarkMode();
-
 
 // Mesmos valores do :root/.dark do app.css. O ApexCharts desenha em <canvas>/SVG
 // próprio, então não enxerga var(--chart-1) direto — por isso os valores ficam
@@ -70,17 +71,12 @@ const chartColor = computed(() => (isDark.value ? 'hsl(220 70% 50%)' : 'hsl(12 7
 const mutedColor = computed(() => (isDark.value ? 'hsl(0 0% 63.9%)' : 'hsl(0 0% 45.1%)'));
 const borderColor = computed(() => (isDark.value ? 'hsl(0 0% 14.9%)' : 'hsl(0 0% 89.8%)'));
 
-// const chartSeries = computed(() => [
-//     {
-//         name: 'Capital investido',
-//         data: props.netWorthHistory.map((point) => point.invested),
-//     },
-// ]);
-// console.log('props.dailyHistory', props.dailyHistory);
 const chartSeriesDiario = computed(() => [
     { name: 'Valor de mercado', data: props.dailyHistory.map(d => d.mercado) },
     { name: 'Valor com dividendos', data: props.dailyHistory.map(d => d.comDividendos) },
 ]);
+
+const tipoSelecionado = ref('todas');
 
 const chartOptions = computed(() => ({
     
@@ -111,6 +107,7 @@ const chartOptions = computed(() => ({
     },
     xaxis: {
         categories: props.dailyHistory.map((d) => d.date),
+        tickAmount: 10, // evita 365 rótulos amontoados quando o período for "1y"
         labels: { style: { colors: mutedColor.value } },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -127,7 +124,56 @@ const chartOptions = computed(() => ({
     },
 }));
 
-const chartSeriesAcoesGroup = computed(() => props.stocksHistory.series);
+const chartSeriesAcoesGroup = computed(() => {
+    // mapa ticker -> tipo, pra saber de qual grupo cada série é
+    const tipoPorTicker = {};
+    stocksComTotais.value.forEach((s) => {
+        tipoPorTicker[s.ticker] = s.type;
+    });
+
+    // soma, dia a dia, todas as séries do mesmo tipo
+    const grupos = {};
+    props.stocksHistory.series.forEach((serie) => {
+        const tipo = tipoPorTicker[serie.name];
+        if (!tipo) return;
+
+        if (!grupos[tipo]) {
+            grupos[tipo] = serie.data.map(() => 0);
+        }
+
+        grupos[tipo] = grupos[tipo].map((soma, i) => soma + serie.data[i]);
+    });
+
+    const labelPorTipo = { acao: 'Ações', fii: 'FIIs' };
+    const linhas = Object.entries(grupos).map(([tipo, data]) => ({
+        name: labelPorTipo[tipo] ?? tipo,
+        data,
+    }));
+
+    if (tipoSelecionado.value === 'todas') {
+        return linhas;
+    }
+
+    return linhas.filter((linha) => linha.name === labelPorTipo[tipoSelecionado.value]);
+});
+
+const chartSeriesAcoesDetalhado = computed(() => {
+    if (tipoSelecionado.value === 'todas') {
+        return props.stocksHistory.series;
+    }
+
+    const tickersDoTipo = stocksComTotais.value
+        .filter((s) => s.type === tipoSelecionado.value)
+        .map((s) => s.ticker);
+
+    return props.stocksHistory.series.filter((s) => tickersDoTipo.includes(s.name));
+});
+
+
+const periodoLabel = computed(() => {
+    const labels = { '1d': '1D', '7d': '7D', '30d': '30D', '1y': '1A' };
+    return labels[props.periodoSelecionado] ?? props.periodoSelecionado;
+});
 
 const chartAcoesGroup = computed(() => ({
     chart: {
@@ -155,6 +201,7 @@ const chartAcoesGroup = computed(() => ({
     },
     xaxis: {
         categories: props.stocksHistory.categories,
+        tickAmount: 10, // evita 365 rótulos amontoados quando o período for "1y"
         labels: { style: { colors: mutedColor.value } },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -206,6 +253,49 @@ const stocksComTotais = computed(() =>
     })
 );
 
+// GRÁFICO ALOCAÇÃO POR ATIVO
+// : percorre stocksComTotais e soma o mercado de cada ação dentro do grupo do seu type — resultado: 
+// { acao: 15000, fii: 8000 }, depois convertido num array (alocacaoPorTipo) que guarda tipo
+//  + rótulo amigável + total, útil tanto pro labels do gráfico quanto pra identificar o grupo no clique.
+//  Monta dinamicamente (se você só tiver FIIs, por exemplo, não aparece uma fatia vazia de "Ações").
+const alocacaoPorTipo = computed(() => {
+    const grupos = {};
+    stocksComTotais.value.forEach((s) => {
+        grupos[s.type] = (grupos[s.type] ?? 0) + s.mercado;
+    });
+
+    const labelPorTipo = { acao: 'Ações', fii: 'FIIs' };
+
+    return Object.entries(grupos).map(([tipo, total]) => ({
+        tipo,
+        label: labelPorTipo[tipo] ?? tipo,
+        total,
+    }));
+});
+
+const chartSeriesAlocacao = computed(() => alocacaoPorTipo.value.map((g) => g.total));
+
+const chartOptionsAlocacao = computed(() => ({
+    chart: {
+        type: 'donut',
+        background: 'transparent',
+        fontFamily: 'inherit',
+        events: {
+            dataPointSelection: (event, chartContext, config) => {
+                const grupo = alocacaoPorTipo.value[config.dataPointIndex];
+                tipoSelecionado.value = tipoSelecionado.value === grupo.tipo ? 'todas' : grupo.tipo;
+            },
+        },
+    },
+    labels: alocacaoPorTipo.value.map((g) => g.label),
+    legend: { position: 'bottom', labels: { colors: mutedColor.value } },
+    dataLabels: { formatter: (val) => `${val.toFixed(1)}%` },
+    tooltip: {
+        theme: isDark.value ? 'dark' : 'light',
+        y: { formatter: (value) => currencyFormatter.format(Number(value)) },
+    },
+}));
+
 // total com dividendos
 const totalComDividendos = computed(() => totalMercado.value + totalDividendos.value);
 
@@ -215,6 +305,9 @@ const percentualGanho = computed(() => {
 });
 console.log('total mercado  ', totalMercado.value);
 console.log('total dividendos', totalDividendos.value);
+function mudarPeriodo(novoPeriodo) {
+    router.get(route('dashboard'), { periodo: novoPeriodo }, { preserveState: true, preserveScroll: true, replace: true });
+}
 
 </script>
 
@@ -230,6 +323,14 @@ console.log('total dividendos', totalDividendos.value);
         
         <div class="py-12">
             <div class="p-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <Tabs :model-value="periodoSelecionado" @update:model-value="mudarPeriodo" class="mb-4">
+                    <TabsList>
+                        <TabsTrigger value="1d">1 dia</TabsTrigger>
+                        <TabsTrigger value="7d">7 dias</TabsTrigger>
+                        <TabsTrigger value="30d">30 dias</TabsTrigger>
+                        <TabsTrigger value="1y">1 ano</TabsTrigger>
+                    </TabsList>
+                </Tabs>
                 <div class="mx-auto max-w-7xl grid gap-4 sm:grid-cols-5">
                    <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -300,6 +401,31 @@ console.log('total dividendos', totalDividendos.value);
                         />
                     </CardContent>
                 </Card>
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Patrimônio investido AÇÕES</CardTitle>
+                            <CardDescription>
+                                {{ tipoSelecionado === 'todas' ? 'Ações vs FIIs' : (tipoSelecionado === 'acao' ? 'Ações' : 'FIIs') }} — valor de mercado ({{ periodoLabel }})
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <VueApexCharts type="line" height="280" :options="chartAcoesGroup" :series="chartSeriesAcoesGroup" />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Alocação por tipo</CardTitle>
+                            <CardDescription>Clique numa fatia pra filtrar o gráfico ao lado</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <VueApexCharts type="donut" height="280" :options="chartOptionsAlocacao" :series="chartSeriesAlocacao" />
+                        </CardContent>
+                    </Card>
+                </div>
+
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Patrimônio investido AÇÔES</CardTitle>
@@ -313,7 +439,7 @@ console.log('total dividendos', totalDividendos.value);
                             type="line"
                             height="280"
                             :options="chartAcoesGroup"
-                            :series="chartSeriesAcoesGroup"
+                            :series="chartSeriesAcoesDetalhado"
                         />
                     </CardContent>
                 </Card>
